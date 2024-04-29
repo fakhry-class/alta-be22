@@ -27,6 +27,7 @@ type User struct {
 	Address   string    `json:"address" form:"address"`
 	StoreName string    `json:"store_name" form:"store_name"`
 	Products  []Product `gorm:"foreignKey:UserID;references:ID"`
+	// Favorites []Favorite
 }
 type Product struct {
 	ID          uint `gorm:"primarykey"`
@@ -39,11 +40,21 @@ type Product struct {
 	Price       float64
 	Stock       int
 	Type        string
+	// User User
+	// Favorites []Favorite
 }
 
 /*
 TODO: tambahkan table favorite
 */
+
+type Favorite struct {
+	gorm.Model
+	UserID    uint
+	ProductID uint
+	Product   Product `gorm:"foreignKey:ProductID;references:ID"`
+	User      User    `gorm:"foreignKey:UserID;references:ID"`
+}
 
 func InitDB() {
 	var err error
@@ -59,6 +70,7 @@ func InitDB() {
 func InitialMigration() {
 	DB.AutoMigrate(&User{})
 	DB.AutoMigrate(&Product{})
+	DB.AutoMigrate(&Favorite{})
 }
 
 func main() {
@@ -69,6 +81,7 @@ func main() {
 	// create new instance echo
 	e := echo.New()
 	e.GET("/users", GetAllUsersController)
+	e.GET("/favorites", GetAllFavoritesController)
 	e.POST("/users", AddUserController)
 	e.DELETE("/users/:id", DeleteUserByIdController)
 
@@ -83,9 +96,9 @@ func main() {
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
-func GetAllUsersController(c echo.Context) error {
-	var allUsers []User                          // var penampung data yg dibaca dari db
-	tx := DB.Preload("Products").Find(&allUsers) // select * from users
+func GetAllFavoritesController(c echo.Context) error {
+	var allFavorites []Favorite                  // var penampung data yg dibaca dari db
+	tx := DB.Preload("User").Find(&allFavorites) // select * from users
 	if tx.Error != nil {                         //check apakah terjadi error saat menjalankan query
 		return c.JSON(http.StatusInternalServerError, map[string]any{
 			"status":  "failed",
@@ -95,7 +108,39 @@ func GetAllUsersController(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"status":  "success",
 		"message": "success read data",
-		"results": allUsers,
+		"results": allFavorites,
+	})
+}
+func GetAllUsersController(c echo.Context) error {
+	var allUsers []User // var penampung data yg dibaca dari db
+	// tx := DB.Preload("Products").Find(&allUsers) // select * from users
+	tx := DB.Find(&allUsers) // select * from users
+	if tx.Error != nil {     //check apakah terjadi error saat menjalankan query
+		return c.JSON(http.StatusInternalServerError, map[string]any{
+			"status":  "failed",
+			"message": "error read data",
+		})
+	}
+
+	type UserResponse struct {
+		ID    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	var allUsersResponse []UserResponse
+	for _, value := range allUsers {
+		allUsersResponse = append(allUsersResponse, UserResponse{
+			ID:    value.ID,
+			Name:  value.Name,
+			Email: value.Email,
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"status":  "success",
+		"message": "success read data",
+		"results": allUsersResponse,
 	})
 }
 
@@ -106,6 +151,12 @@ func AddUserController(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{
 			"status":  "failed",
 			"message": "error bind data: " + errBind.Error(),
+		})
+	}
+	if newUser.Name == "" {
+		return c.JSON(http.StatusBadRequest, map[string]any{
+			"status":  "failed",
+			"message": "nama tidak boleh kosong",
 		})
 	}
 	// data newArticle simpan ke DB
