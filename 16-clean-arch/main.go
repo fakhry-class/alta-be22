@@ -10,8 +10,8 @@ import (
 
 func main() {
 	cfg := configs.InitConfig()
-	// dbMysql := databases.InitDBMysql(cfg)
-	dbMysql := databases.InitDBPosgres(cfg)
+	dbMysql := databases.InitDBMysql(cfg)
+	// dbPosgres := databases.InitDBPosgres(cfg)
 
 	// create new instance echo
 	e := echo.New()
