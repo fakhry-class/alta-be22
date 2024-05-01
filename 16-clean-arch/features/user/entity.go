@@ -17,9 +17,11 @@ type Core struct {
 type DataInterface interface {
 	Insert(input Core) error
 	SelectAll() ([]Core, error)
+	Delete(id uint) error
 }
 
 type ServiceInterface interface {
 	Create(input Core) error
 	GetAll() ([]Core, error)
+	Delete(id uint) error
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"be22/clean-arch/features/user"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -72,5 +73,27 @@ func (uh *UserHandler) GetAll(c echo.Context) error {
 		"status":  "success",
 		"message": "success read data",
 		"results": allUsersResponse,
+	})
+}
+
+func (uh *UserHandler) Delete(c echo.Context) error {
+	id := c.Param("id")
+	idConv, errConv := strconv.Atoi(id)
+	if errConv != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{
+			"status":  "failed",
+			"message": "error convert id: " + errConv.Error(),
+		})
+	}
+	err := uh.userService.Delete(uint(idConv))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{
+			"status":  "failed",
+			"message": "error delete data " + err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"status":  "success",
+		"message": "success delete user",
 	})
 }

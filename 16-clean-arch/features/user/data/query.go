@@ -62,3 +62,12 @@ func (u *userQuery) SelectAll() ([]user.Core, error) {
 
 	return allUserCore, nil
 }
+
+// Delete implements user.DataInterface.
+func (u *userQuery) Delete(id uint) error {
+	tx := u.db.Delete(&User{}, id)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}

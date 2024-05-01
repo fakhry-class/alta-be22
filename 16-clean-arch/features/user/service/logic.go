@@ -37,3 +37,11 @@ func (u *userService) Create(input user.Core) error {
 func (u *userService) GetAll() ([]user.Core, error) {
 	return u.userData.SelectAll()
 }
+
+// Delete implements user.ServiceInterface.
+func (u *userService) Delete(id uint) error {
+	if id <= 0 {
+		return errors.New("id not valid")
+	}
+	return u.userData.Delete(id)
+}
