@@ -71,3 +71,54 @@ func (u *userQuery) Delete(id uint) error {
 	}
 	return nil
 }
+
+// Login implements user.DataInterface.
+func (u *userQuery) SelectByEmail(email string) (*user.Core, error) {
+	// select id, name, phone from users where email = xxxx and password = xxxxxx
+	// select id, name, phone from users where email = xxxx
+
+	// variable penampung datanya
+	var userData User
+	tx := u.db.Where("email = ?", email).First(&userData)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	// mapping
+	var usercore = user.Core{
+		ID:        userData.ID,
+		Name:      userData.Name,
+		Email:     userData.Email,
+		Password:  userData.Password,
+		Phone:     userData.Phone,
+		Address:   userData.Address,
+		StoreName: userData.StoreName,
+		CreatedAt: userData.CreatedAt,
+		UpdatedAt: userData.UpdatedAt,
+	}
+
+	return &usercore, nil
+}
+
+// SelectById implements user.DataInterface.
+func (u *userQuery) SelectById(id uint) (*user.Core, error) {
+	// variable penampung datanya
+	var userData User
+	tx := u.db.First(&userData, id)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	// mapping
+	var usercore = user.Core{
+		ID:        userData.ID,
+		Name:      userData.Name,
+		Email:     userData.Email,
+		Password:  userData.Password,
+		Phone:     userData.Phone,
+		Address:   userData.Address,
+		StoreName: userData.StoreName,
+		CreatedAt: userData.CreatedAt,
+		UpdatedAt: userData.UpdatedAt,
+	}
+
+	return &usercore, nil
+}

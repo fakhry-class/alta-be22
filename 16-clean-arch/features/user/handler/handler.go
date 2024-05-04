@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"be22/clean-arch/app/middlewares"
 	"be22/clean-arch/features/user"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -95,5 +97,57 @@ func (uh *UserHandler) Delete(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"status":  "success",
 		"message": "success delete user",
+	})
+}
+
+func (uh *UserHandler) Login(c echo.Context) error {
+	var reqLoginData = LoginRequest{}
+	errBind := c.Bind(&reqLoginData)
+	if errBind != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{
+			"status":  "failed",
+			"message": "error bind data: " + errBind.Error(),
+		})
+	}
+	result, token, err := uh.userService.Login(reqLoginData.Email, reqLoginData.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{
+			"status":  "failed",
+			"message": "error login " + err.Error(),
+		})
+	}
+	//mapping
+	var resultResponse = map[string]any{
+		"id":    result.ID,
+		"name":  result.Name,
+		"token": token,
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"status":  "success",
+		"message": "success login",
+		"data":    resultResponse,
+	})
+}
+
+func (uh *UserHandler) Profile(c echo.Context) error {
+	// extract id user from jwt token
+	idToken := middlewares.ExtractTokenUserId(c)
+	log.Println("idtoken:", idToken)
+	result, err := uh.userService.GetById(uint(idToken))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{
+			"status":  "failed",
+			"message": "error login " + err.Error(),
+		})
+	}
+	resultResponse := UserResponse{
+		ID:    result.ID,
+		Name:  result.Name,
+		Email: result.Email,
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"status":  "success",
+		"message": "success login",
+		"data":    resultResponse,
 	})
 }
