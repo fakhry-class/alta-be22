@@ -19,6 +19,7 @@ func main() {
 
 	routers.InitRouter(e, dbMysql)
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
 	// e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 	// 	Format: "method=${method}, uri=${uri}, status=${status}\n",
 	// }))

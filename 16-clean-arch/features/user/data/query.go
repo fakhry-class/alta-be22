@@ -103,7 +103,7 @@ func (u *userQuery) SelectByEmail(email string) (*user.Core, error) {
 func (u *userQuery) SelectById(id uint) (*user.Core, error) {
 	// variable penampung datanya
 	var userData User
-	tx := u.db.First(&userData, id)
+	tx := u.db.First(&userData, id) //id user(token) --> select * from users where id = xxxx
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
@@ -122,3 +122,5 @@ func (u *userQuery) SelectById(id uint) (*user.Core, error) {
 
 	return &usercore, nil
 }
+
+// select * from projects where user_id = xxxx
